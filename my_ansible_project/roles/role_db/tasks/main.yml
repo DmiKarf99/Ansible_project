@@ -1,59 +1,66 @@
----
-- name: Install PostgreSQL and dependencies
-  ansible.builtin.package:
-    name:
-      - postgresql
-      - postgresql-contrib
-      - python3-psycopg2
+- name: Install PostgreSQL server
+  ansible.builtin.apt:
+    name: postgresql
     state: present
+    update_cache: yes
   become: yes
-  tags: [db, install]
+  tags:
+    - install
+    - db
 
-- name: Start and enable PostgreSQL service
-  ansible.builtin.service:
+- name: Ensure PostgreSQL service is running
+  ansible.builtin.systemd:
     name: postgresql
     state: started
     enabled: yes
   become: yes
-  tags: [db, config]
+  tags:
+    - db
 
-- name: Ensure PostgreSQL is listening on all interfaces
-  ansible.builtin.lineinfile:
-    path: /etc/postgresql/14/main/postgresql.conf
-    regexp: "^#?listen_addresses"
-    line: "listen_addresses = '*'"
-  become: yes
-  notify: restart postgresql
-  tags: [db, config]
-
-- name: Allow MD5 password authentication from any IP
-  community.postgresql.pg_hba:
-    dest: /etc/postgresql/14/main/pg_hba.conf
-    contype: host
-    databases: all
-    users: all
-    address: '0.0.0.0/0'
-    method: md5
-    state: present
-  become: yes
-  notify: restart postgresql
-  tags: [db, config]
-
-- name: Create the application database
-  community.postgresql.postgresql_db:
-    name: "{{ db_name }}"
-    state: present
-  become: yes
-  become_user: postgres
-  tags: [db, config]
-
-- name: Create the application database user
-  community.postgresql.postgresql_user:
-    db: "{{ db_name }}"
+- name: Create database user for app
+  community.general.postgresql_user:
+    db: postgres
     name: "{{ db_user }}"
     password: "{{ db_password }}"
-    priv: "ALL"
     state: present
   become: yes
   become_user: postgres
-  tags: [db, config]
+  tags:
+    - config
+    - db
+
+- name: Create database for app
+  community.general.postgresql_db:
+    name: "{{ app_name }}_db"
+    owner: "{{ db_user }}"
+    state: present
+  become: yes
+  become_user: postgres
+  tags:
+    - config
+    - db
+
+- name: Allow connections from app server (if on a different host)
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    line: "host {{ app_name }}_db {{ db_user }} {{ groups['web_servers'] | map('ansible_host') | join(',') }}/32 md5"
+    insertafter: EOF
+    state: present
+  become: yes
+  notify: Restart postgresql
+  when: groups['app_servers'] is defined and groups['app_servers'] | length > 0
+  tags:
+    - config
+    - db
+
+- name: Configure PostgreSQL to listen on all interfaces (if needed for remote access)
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+    regexp: "^#listen_addresses = 'localhost'"
+    line: "listen_addresses = '*'"
+    state: present
+  become: yes
+  notify: Restart postgresql
+  tags:
+    - config
+    - db

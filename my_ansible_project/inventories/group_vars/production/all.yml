@@ -13,4 +13,3 @@ domain_names:
 extra_domains:
   - "alias.example.com"
   - "another.example.com"
-db_name: "{{ app_name }}_db"

@@ -1,20 +1,13 @@
-# playbooks/site.yml (ПРАВИЛЬНАЯ ВЕРСИЯ)
-
-- name: Deploy and configure Database
-  hosts: db_servers
-  become: yes
-  # УБЕРИТЕ БЛОК 'collections' ОТСЮДА
-  roles:
-    - role_db
-
-- name: Deploy and configure Web Server
-  hosts: web_servers
+- name: Deploy web and application for staging environment
+  hosts: staging
   become: yes
   roles:
     - role_web
+    - role_app
 
-- name: Deploy and configure Application
-  hosts: app_servers
+- name: Deploy web and application for production environment
+  hosts: production
   become: yes
   roles:
+    - role_web
     - role_app

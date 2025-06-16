@@ -8,14 +8,11 @@ Group=www-data
 RuntimeDirectory=gunicorn_{{ app_name }}
 UMask=002
 
-Environment="FLASK_ENV={% if app_debug_mode %}development{% else %}production{% endif %}"
 Environment="DB_HOST={{ db_host }}"
 Environment="DB_USER={{ db_user }}"
 Environment="DB_PASSWORD={{ db_password }}"
-Environment="APP_NAME={{ app_name }}"
-Environment="INVENTORY_HOSTNAME={{ inventory_hostname }}"
 
-ExecStart=/bin/bash -c "set -e; cd /opt/{{ app_name }} && /opt/{{ app_name }}/venv/bin/gunicorn --workers 3 --bind unix:/run/gunicorn_{{ app_name }}/gunicorn.sock main:app"
+ExecStart=/bin/bash -c "set -e; cd /opt/{{ app_name }} && /opt/{{ app_name }}/venv/bin/gunicorn --workers 3 --bind unix:/run/gunicorn_{{ app_name }}/gunicorn.sock --access-logfile - --error-logfile - --log-level {{ 'debug' if app_debug_mode else 'info' }} main:app"
 
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed

@@ -25,9 +25,6 @@ def main():
         },
         "app_servers": {
             "hosts": ["stage-app-01", "prod-app-01"]
-        },
-        "db_servers": {
-            "hosts": ["stage-app-01", "prod-app-01"]
         }
     }
 

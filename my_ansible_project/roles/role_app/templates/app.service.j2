@@ -1,0 +1,22 @@
+[Unit]
+Description=My Sample Web Application
+After=network.target
+
+[Service]
+User={{ app_user }}
+Group={{ app_user }}
+WorkingDirectory={{ app_base_path }}
+ExecStart={{ ansible_python_interpreter | default('/usr/bin/python3') }} -m gunicorn --workers {{ app_workers }} --bind 0.0.0.0:{{ app_port }} main:app
+Restart=always
+
+{% if app_debug_mode %}
+Environment="FLASK_ENV=development"
+{% else %}
+Environment="FLASK_ENV=production"
+{% endif %}
+Environment="DB_HOST={{ db_host }}"
+Environment="DB_USER={{ db_user }}"
+Environment="DB_PASSWORD={{ db_password }}"
+
+[Install]
+WantedBy=multi-user.target
