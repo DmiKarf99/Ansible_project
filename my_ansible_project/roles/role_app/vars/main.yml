@@ -1,0 +1,8 @@
+---
+app_name: "my_ansible_app"
+app_version: "1.0"
+app_user: "app_user"
+app_base_path: "/opt/{{ app_name }}"
+app_port: 5000
+app_workers: 1
+app_service_name: "my_ansible_app"

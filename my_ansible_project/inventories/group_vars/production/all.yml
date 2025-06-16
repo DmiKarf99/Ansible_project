@@ -1,0 +1,15 @@
+---
+db_host: "192.168.3.46"
+db_user: "production_user"
+db_password: "super_secret_prod_password"
+app_debug_mode: false
+nginx_listen_port: 80
+app_name: "my_ansible_app"
+app_user: "my_ansible_app_user"
+app_port: 8000
+domain_names:
+  - "example.com"
+  - "www.example.com"
+extra_domains:
+  - "alias.example.com"
+  - "another.example.com"
